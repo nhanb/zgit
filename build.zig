@@ -26,8 +26,15 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
     exe.root_module.addImport("httpz", httpz.module("httpz"));
+
+    const zqlite = b.dependency("zqlite", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.linkLibC();
+    exe.linkSystemLibrary("sqlite3"); // TODO should we statically link instead?
+    exe.root_module.addImport("zqlite", zqlite.module("zqlite"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
