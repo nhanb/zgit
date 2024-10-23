@@ -2,6 +2,9 @@ const std = @import("std");
 const httpz = @import("httpz");
 const zqlite = @import("zqlite");
 const html = @import("./html.zig");
+const serveHome = @import("./routes/home.zig").serve;
+const serveRegister = @import("./routes/register.zig").serve;
+const static = @import("./routes/static.zig");
 
 const DB_PATH = "workdir/zgit.db";
 const PORT = 8000;
@@ -24,80 +27,14 @@ pub fn main() !void {
     }
 
     var router = server.router(.{});
-    router.get("/register", handleRegister, .{});
-    router.get("/static/style.css", handleStyleCss, .{});
-    router.get("/static/register.css", handleRegisterCss, .{});
+    router.get("/", serveHome, .{});
+    router.get("/register", serveRegister, .{});
+    router.get("/static/style.css", static.serveStyleCss, .{});
+    router.get("/static/register.css", static.serveRegisterCss, .{});
     std.debug.print("Started server at port {d}\n", .{PORT});
 
     // blocks
     try server.listen();
-}
-
-fn handleStyleCss(_: *httpz.Request, res: *httpz.Response) !void {
-    res.status = 200;
-    res.body = @embedFile("static/style.css");
-}
-
-fn handleRegisterCss(_: *httpz.Request, res: *httpz.Response) !void {
-    res.status = 200;
-    res.body = @embedFile("static/register.css");
-}
-
-fn handleRegister(_: *httpz.Request, res: *httpz.Response) !void {
-    res.status = 200;
-    const h = html.Builder{ .allocator = res.arena };
-    const body = h.html(
-        .{ .lang = "en" },
-        .{
-            h.head(null, .{
-                h.title(null, .{"Register | zgit"}),
-                h.link(.{ .rel = "stylesheet", .href = "/static/style.css" }),
-                h.link(.{ .rel = "stylesheet", .href = "/static/register.css" }),
-            }),
-            h.body(null, .{
-                h.h1(null, .{"Register"}),
-                h.form(
-                    .{ .style = "max-width: 30rem" },
-                    .{
-                        h.label(
-                            .{ .@"for" = "username" },
-                            .{"Username:"},
-                        ),
-                        h.input(
-                            .{
-                                .type = "text",
-                                .id = "username",
-                                .name = "username",
-                                .required = "",
-                            },
-                        ),
-                        h.label(
-                            .{ .@"for" = "password" },
-                            .{"Password:"},
-                        ),
-                        h.input(
-                            .{
-                                .type = "text",
-                                .id = "password",
-                                .name = "password",
-                                .required = "",
-                            },
-                        ),
-                        h.input(
-                            .{
-                                .type = "submit",
-                                .value = "Register",
-                            },
-                        ),
-                    },
-                ),
-            }),
-        },
-    );
-
-    const writer = res.writer();
-    try h.writeDoctype(writer);
-    try body.writeTo(writer);
 }
 
 fn initDb(db_path: [:0]const u8) !void {
