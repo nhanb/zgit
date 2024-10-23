@@ -37,26 +37,6 @@ pub const Element = struct {
         try writer.writeAll(self.tag);
 
         for (self.attrs) |attr| {
-            // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-            // Attribute names must consist of one or more characters other than
-            // controls, U+0020 SPACE, U+0022 ("), U+0027 ('), U+003E (>), U+002F (/),
-            // U+003D (=), and noncharacters. In the HTML syntax, attribute names, even
-            // those for foreign elements, may be written with any mix of ASCII lower
-            // and ASCII upper alphas.
-            for (attr.name) |char| {
-                if (!std.ascii.isASCII(char)) {
-                    unreachable; // found non-ascii char in html attribute name
-                }
-                if (std.ascii.isControl(char)) {
-                    unreachable; // found forbidden control char in html attribute name
-                }
-                for (" \"'>/=") |forbidden_char| {
-                    if (char == forbidden_char) {
-                        unreachable; // found forbidden char in html attribute name
-                    }
-                }
-            }
-
             try writer.writeAll(" ");
             try writer.writeAll(attr.name);
             try writer.writeAll("=\"");
@@ -129,6 +109,28 @@ pub const Builder = struct {
 
         if (@TypeOf(attrs) != @TypeOf(null)) {
             inline for (@typeInfo(@TypeOf(attrs)).@"struct".fields) |field| {
+                comptime {
+                    // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
+                    // Attribute names must consist of one or more characters other than
+                    // controls, U+0020 SPACE, U+0022 ("), U+0027 ('), U+003E (>), U+002F (/),
+                    // U+003D (=), and noncharacters. In the HTML syntax, attribute names, even
+                    // those for foreign elements, may be written with any mix of ASCII lower
+                    // and ASCII upper alphas.
+                    for (field.name) |char| {
+                        if (!std.ascii.isASCII(char)) {
+                            unreachable; // found non-ascii char in html attribute name
+                        }
+                        if (std.ascii.isControl(char)) {
+                            unreachable; // found forbidden control char in html attribute name
+                        }
+                        for (" \"'>/=") |forbidden_char| {
+                            if (char == forbidden_char) {
+                                unreachable; // found forbidden char in html attribute name
+                            }
+                        }
+                    }
+                }
+
                 attrs_list.append(.{
                     .name = field.name,
                     .value = @field(attrs, field.name),
