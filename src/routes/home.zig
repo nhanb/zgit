@@ -15,12 +15,32 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     try db.readConfig(&config);
 
     const h = html.Builder{ .allocator = arena };
+
+    // TODO read repos from db
+
+    // TODO construct repos table body
+
     const body = templates.base(
         arena,
         "Home",
         h.div(null, .{
-            h.h1(null, .{config.title.slice()}),
-            h.p(null, .{config.tagline.slice()}),
+            h.link(.{ .rel = "stylesheet", .href = "/static/home.css" }),
+            h.header(null, .{
+                h.h1(.{ .id = "title" }, .{config.title.slice()}),
+                h.p(.{ .id = "tagline" }, .{config.tagline.slice()}),
+            }),
+            h.main(null, .{
+                h.table(.{ .id = "repos-table" }, .{
+                    h.thead(null, .{
+                        h.tr(null, .{
+                            h.th(null, .{"Name"}),
+                            h.th(null, .{"Description"}),
+                            h.th(null, .{"Owner"}),
+                            h.th(null, .{"Idle"}),
+                        }),
+                    }),
+                }),
+            }),
         }),
     );
 

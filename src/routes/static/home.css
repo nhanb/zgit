@@ -1,0 +1,17 @@
+#title {
+  font-weight: normal;
+  font-size: 1.5rem;
+  line-height: 2.5rem;
+}
+
+#tagline {
+}
+
+header {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid black;
+}
+
+main {
+  margin-top: 1rem;
+}

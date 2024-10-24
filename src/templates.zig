@@ -10,7 +10,6 @@ pub fn base(arena: std.mem.Allocator, title: []const u8, main_content: html.Elem
             h.head(null, .{
                 h.title(null, .{ title, " | zgit" }),
                 h.link(.{ .rel = "stylesheet", .href = "/static/style.css" }),
-                h.link(.{ .rel = "stylesheet", .href = "/static/register.css" }),
             }),
             h.body(null, .{
                 main_content,

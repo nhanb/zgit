@@ -24,6 +24,8 @@ pub fn init() !void {
     );
     // insert default config:
     try conn.execNoArgs("insert into config(id) values(0) on conflict do nothing;");
+
+    // TODO: read current dir, insert repo records into db
 }
 
 pub const Config = struct {

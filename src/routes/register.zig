@@ -10,6 +10,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
         arena,
         "Register",
         h.div(null, .{
+            h.link(.{ .rel = "stylesheet", .href = "/static/register.css" }),
             h.h1(null, .{"Register"}),
             h.form(
                 .{ .style = "max-width: 30rem" },
