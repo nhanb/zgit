@@ -1,4 +1,4 @@
-CREATE TABLE repo (
+CREATE TABLE IF NOT EXISTS repo (
     id integer PRIMARY KEY,
     name text UNIQUE NOT NULL,
     created_at text DEFAULT CURRENT_TIMESTAMP,

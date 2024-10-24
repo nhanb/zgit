@@ -1,4 +1,4 @@
-CREATE TABLE user_repo_access (
+CREATE TABLE IF NOT EXISTS user_repo_access (
     user_id integer NOT NULL,
     repo_id integer NOT NULL,
     can_read boolean NOT NULL,

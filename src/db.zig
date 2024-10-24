@@ -1,7 +1,7 @@
 const std = @import("std");
 const zqlite = @import("zqlite");
 
-pub const DB_PATH = "workdir/zgit.db";
+pub const DB_PATH = "../zgit.db"; // big-ass TODO
 pub const CONFIG_MAX_STRING_LENGTH = 256;
 
 pub fn init() !void {
@@ -22,7 +22,8 @@ pub fn init() !void {
             .{ CONFIG_MAX_STRING_LENGTH, CONFIG_MAX_STRING_LENGTH },
         ),
     );
-    try conn.execNoArgs("insert into config(id) values(0);"); // insert default config
+    // insert default config:
+    try conn.execNoArgs("insert into config(id) values(0) on conflict do nothing;");
 }
 
 pub const Config = struct {
