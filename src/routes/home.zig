@@ -9,7 +9,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     res.status = 200;
 
     var config = db.Config{
-        .title = .{},
+        .site_name = .{},
         .tagline = .{},
     };
     try db.readConfig(&config);
@@ -20,29 +20,24 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
 
     // TODO construct repos table body
 
-    const body = templates.base(
-        arena,
-        "Home",
-        h.div(null, .{
+    const body = templates.base(.{
+        .builder = h,
+        .title = config.site_name.slice(),
+        .subtitle = config.tagline.slice(),
+        .main = h.main(null, .{
             h.link(.{ .rel = "stylesheet", .href = "/static/home.css" }),
-            h.header(null, .{
-                h.h1(.{ .id = "title" }, .{config.title.slice()}),
-                h.p(.{ .id = "tagline" }, .{config.tagline.slice()}),
-            }),
-            h.main(null, .{
-                h.table(.{ .id = "repos-table" }, .{
-                    h.thead(null, .{
-                        h.tr(null, .{
-                            h.th(null, .{"Name"}),
-                            h.th(null, .{"Description"}),
-                            h.th(null, .{"Owner"}),
-                            h.th(null, .{"Idle"}),
-                        }),
+            h.table(.{ .id = "repos-table" }, .{
+                h.thead(null, .{
+                    h.tr(null, .{
+                        h.th(null, .{"Name"}),
+                        h.th(null, .{"Description"}),
+                        h.th(null, .{"Owner"}),
+                        h.th(null, .{"Idle"}),
                     }),
                 }),
             }),
         }),
-    );
+    });
 
     const writer = res.writer();
     try h.writeDoctype(writer);

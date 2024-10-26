@@ -29,7 +29,7 @@ pub fn init() !void {
 }
 
 pub const Config = struct {
-    title: std.BoundedArray(u8, CONFIG_MAX_STRING_LENGTH),
+    site_name: std.BoundedArray(u8, CONFIG_MAX_STRING_LENGTH),
     tagline: std.BoundedArray(u8, CONFIG_MAX_STRING_LENGTH),
 };
 
@@ -38,9 +38,9 @@ pub fn readConfig(config: *Config) !void {
     var conn = try zqlite.open(DB_PATH, flags);
     defer conn.close();
 
-    if (try conn.row("select title, tagline from config;", .{})) |row| {
+    if (try conn.row("select site_name, tagline from config;", .{})) |row| {
         defer row.deinit();
-        try config.title.appendSlice(row.text(0));
+        try config.site_name.appendSlice(row.text(0));
         try config.tagline.appendSlice(row.text(1));
         return;
     }

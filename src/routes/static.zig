@@ -1,5 +1,10 @@
 const httpz = @import("httpz");
 
+pub fn serveMascotPng(_: *httpz.Request, res: *httpz.Response) !void {
+    res.status = 200;
+    res.body = @embedFile("./static/mascot.png");
+}
+
 pub fn serveStyleCss(_: *httpz.Request, res: *httpz.Response) !void {
     res.status = 200;
     res.body = @embedFile("./static/style.css");

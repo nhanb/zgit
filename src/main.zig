@@ -28,9 +28,10 @@ pub fn main() !void {
     var router = server.router(.{});
     router.get("/", serveHome, .{});
     router.get("/register", serveRegister, .{});
-    router.get("/static/style.css", static.serveStyleCss, .{});
+    router.get("/static/mascot.png", static.serveMascotPng, .{});
     router.get("/static/home.css", static.serveHomeCss, .{});
     router.get("/static/register.css", static.serveRegisterCss, .{});
+    router.get("/static/style.css", static.serveStyleCss, .{});
     std.debug.print("Started server at port {d}\n", .{PORT});
 
     // blocks

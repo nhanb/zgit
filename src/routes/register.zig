@@ -6,12 +6,11 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     res.status = 200;
     const arena = res.arena;
     const h = html.Builder{ .allocator = arena };
-    const body = templates.base(
-        arena,
-        "Register",
-        h.div(null, .{
-            h.link(.{ .rel = "stylesheet", .href = "/static/register.css" }),
-            h.h1(null, .{"Register"}),
+    const body = templates.base(.{
+        .builder = h,
+        .title = "Register",
+        .subtitle = "Register your account here",
+        .main = h.div(null, .{
             h.form(
                 .{ .style = "max-width: 30rem" },
                 .{
@@ -48,7 +47,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
                 },
             ),
         }),
-    );
+    });
 
     const writer = res.writer();
     try h.writeDoctype(writer);
