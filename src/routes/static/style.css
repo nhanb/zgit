@@ -48,7 +48,8 @@ a#home-link:hover {
   background-color: black;
 }
 #mascot {
-  align-self: center; /* avoid stretching */
+  align-self: end;
+  image-rendering: crisp-edges;
 }
 
 #title {
@@ -60,6 +61,7 @@ a#home-link:hover {
 header {
   border-bottom: 2px solid black;
   display: flex;
+  flex-direction: row;
   gap: 1rem;
 }
 

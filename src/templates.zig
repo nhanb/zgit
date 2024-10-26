@@ -1,6 +1,7 @@
 const std = @import("std");
 const httpz = @import("httpz");
 const html = @import("./html.zig");
+const static = @import("./routes/static.zig");
 
 pub const TemplateArgs = struct {
     builder: html.Builder,
@@ -15,13 +16,20 @@ pub fn base(args: TemplateArgs) html.Element {
         .{ .lang = "en" },
         .{
             h.head(null, .{
+                h.meta(.{ .charset = "utf-8" }),
+                h.meta(.{ .name = "viewport", .content = "width=device-width, initial-scale=1.0" }),
                 h.title(null, .{ args.title, " | zgit" }),
                 h.link(.{ .rel = "stylesheet", .href = "/static/style.css" }),
             }),
             h.body(null, .{
                 h.header(null, .{
                     h.a(.{ .id = "home-link", .href = "/", .title = "Go to homepage" }, .{
-                        h.img(.{ .id = "mascot", .src = "/static/mascot.png" }),
+                        h.img(.{
+                            .id = "mascot",
+                            .src = "/static/mascot.png",
+                            .width = static.mascot_png.width,
+                            .height = static.mascot_png.height,
+                        }),
                     }),
                     h.div(.{ .id = "title-container" }, .{
                         h.h1(.{ .id = "title" }, .{args.title}),
