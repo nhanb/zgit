@@ -1,13 +1,22 @@
 const std = @import("std");
 const zqlite = @import("zqlite");
 
-pub const DB_PATH = "../zgit.db"; // big-ass TODO
+pub const DB_PATH = "zgit.db";
 pub const CONFIG_MAX_STRING_LENGTH = 256;
 pub const REPO_NAME_MAX_LENGTH = 100; // same as github
 pub const REPO_DESC_MAX_LENGTH = 128;
 pub const EMAIL_MAX_LENGTH = 254; // https://stackoverflow.com/a/574698
 
-pub fn init() !void {
+pub fn init() !bool {
+    const cwd = std.fs.cwd();
+
+    var db_exists = true;
+    cwd.access(DB_PATH, .{ .mode = .read_only }) catch {
+        db_exists = false;
+    };
+    if (db_exists) {
+        return false;
+    }
     const flags = zqlite.OpenFlags.Create | zqlite.OpenFlags.EXResCode;
     var conn = try zqlite.open(DB_PATH, flags);
     defer conn.close();
@@ -42,6 +51,20 @@ pub fn init() !void {
     try conn.execNoArgs("insert into config(id) values(0) on conflict do nothing;");
 
     // TODO: read current dir, insert repo records into db
+    const dir = try cwd.openDir(".", .{
+        .access_sub_paths = false,
+        .iterate = true,
+        .no_follow = true,
+    });
+    var iter = dir.iterate();
+    while (try iter.next()) |entry| {
+        if (entry.kind != .directory) {
+            continue;
+        }
+        std.debug.print(">> {s}\n", .{entry.name});
+    }
+
+    return true;
 }
 
 pub const Config = struct {

@@ -12,8 +12,12 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
-    try db.init();
-    std.debug.print("Initialized {s}\n", .{db.DB_PATH});
+    const is_initial_setup = try db.init();
+    if (is_initial_setup) {
+        std.debug.print("Initialized {s}\n", .{db.DB_PATH});
+    } else {
+        std.debug.print("Found existing {s}\n", .{db.DB_PATH});
+    }
 
     // More advanced cases will use a custom "Handler" instead of "void".
     // The last parameter is our handler instance, since we have a "void"
