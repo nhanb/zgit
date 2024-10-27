@@ -16,9 +16,22 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
 
     const h = html.Builder{ .allocator = arena };
 
-    // TODO read repos from db
-
-    // TODO construct repos table body
+    // read repos from db then construct html table rows
+    var repos = std.ArrayList(db.Repo).init(arena);
+    try db.listRepos(&repos);
+    var repo_trs = std.ArrayList(html.Element).init(arena);
+    for (0..repos.items.len) |i| {
+        const name = repos.items[i].name.slice();
+        const desc = repos.items[i].description.slice();
+        try repo_trs.append(h.tr(null, .{
+            h.td(null, .{
+                h.a(.{ .href = name }, .{name}),
+            }),
+            h.td(null, .{desc}),
+            h.td(null, .{"TODO"}),
+            h.td(null, .{"TODO"}),
+        }));
+    }
 
     const body = templates.base(.{
         .builder = h,
@@ -34,6 +47,9 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
                         h.th(null, .{"Owner"}),
                         h.th(null, .{"Idle"}),
                     }),
+                }),
+                h.tbody(null, .{
+                    repo_trs.items,
                 }),
             }),
         }),

@@ -9,6 +9,9 @@
 :root {
   font-family: sans-serif;
   font-size: 100%;
+
+  --fg: black;
+  --bg: white;
 }
 
 body {
@@ -19,6 +22,15 @@ h1 {
   font-size: 2rem;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
+}
+
+a {
+  color: var(--fg);
+}
+a:hover {
+  background-color: var(--fg);
+  color: var(--bg);
+  text-decoration: none;
 }
 
 label {

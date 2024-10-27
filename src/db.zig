@@ -57,11 +57,31 @@ pub fn init() !bool {
         .no_follow = true,
     });
     var iter = dir.iterate();
+
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
     while (try iter.next()) |entry| {
         if (entry.kind != .directory) {
             continue;
         }
-        std.debug.print(">> {s}\n", .{entry.name});
+        defer _ = arena.reset(.{ .retain_with_limit = 8192 });
+        const result = try std.process.Child.run(.{
+            .allocator = arena.allocator(),
+            .cwd = entry.name,
+            .argv = &.{
+                "git",
+                "rev-parse",
+                "--is-bare-repository",
+            },
+        });
+        if (std.mem.eql(u8, result.stdout, "true\n")) {
+            std.debug.print("Found repo {s}\n", .{entry.name});
+            try conn.exec(
+                "insert into repo (name) values(?);",
+                .{entry.name},
+            );
+        }
     }
 
     return true;
@@ -97,13 +117,21 @@ pub fn listRepos(repos: *std.ArrayList(Repo)) !void {
     var conn = try zqlite.open(DB_PATH, zqlite.OpenFlags.ReadOnly | zqlite.OpenFlags.EXResCode);
     defer conn.close();
 
-    const rows = try conn.rows("select name, description from repo;", .{});
+    var rows = try conn.rows("select name, description from repo order by name;", .{});
     defer rows.deinit();
     while (rows.next()) |row| {
-        var repo: Repo = undefined;
+        var repo: Repo = .{
+            .name = .{},
+            .description = .{},
+            .owner = .{},
+        };
         try repo.name.appendSlice(row.text(0));
         try repo.description.appendSlice(row.text(1));
         try repos.append(repo);
     }
-    if (rows.err) |err| return err;
+
+    if (rows.err) |err| {
+        std.debug.print(">>>>> error here\n", .{});
+        return err;
+    }
 }

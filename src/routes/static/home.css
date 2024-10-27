@@ -1,0 +1,7 @@
+#repos-table {
+  width: 100%;
+  text-align: left;
+}
+#repos-table tr:hover {
+  background-color: #eee;
+}
