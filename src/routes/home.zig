@@ -5,7 +5,6 @@ const db = @import("../db.zig");
 const std = @import("std");
 
 pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
-    const arena = res.arena;
     res.status = 200;
 
     var config = db.Config{
@@ -14,15 +13,18 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     };
     try db.readConfig(&config);
 
-    const h = html.Builder{ .allocator = arena };
+    const h = html.Builder{ .allocator = res.arena };
 
     // read repos from db then construct html table rows
-    var repos = std.ArrayList(db.Repo).init(arena);
+    var repos = std.ArrayList(db.Repo).init(res.arena);
     try db.listRepos(&repos);
-    var repo_trs = std.ArrayList(html.Element).init(arena);
+    var repo_trs = std.ArrayList(html.Element).init(res.arena);
     for (0..repos.items.len) |i| {
         const name = repos.items[i].name.slice();
-        const desc = repos.items[i].description.slice();
+        var desc: []const u8 = repos.items[i].description.slice();
+        if (desc.len == 0) {
+            desc = "-";
+        }
         try repo_trs.append(h.tr(null, .{
             h.td(null, .{
                 h.a(.{ .href = name }, .{name}),
