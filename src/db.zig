@@ -88,8 +88,8 @@ pub fn init() !bool {
 }
 
 pub const Config = struct {
-    site_name: std.BoundedArray(u8, CONFIG_MAX_STRING_LENGTH),
-    tagline: std.BoundedArray(u8, CONFIG_MAX_STRING_LENGTH),
+    site_name: std.BoundedArray(u8, CONFIG_MAX_STRING_LENGTH) = .{},
+    tagline: std.BoundedArray(u8, CONFIG_MAX_STRING_LENGTH) = .{},
 };
 
 pub fn readConfig(config: *Config) !void {
@@ -108,9 +108,9 @@ pub fn readConfig(config: *Config) !void {
 }
 
 pub const Repo = struct {
-    name: std.BoundedArray(u8, REPO_NAME_MAX_LENGTH),
-    description: std.BoundedArray(u8, REPO_DESC_MAX_LENGTH),
-    owner: std.BoundedArray(u8, EMAIL_MAX_LENGTH),
+    name: std.BoundedArray(u8, REPO_NAME_MAX_LENGTH) = .{},
+    description: std.BoundedArray(u8, REPO_DESC_MAX_LENGTH) = .{},
+    owner: std.BoundedArray(u8, EMAIL_MAX_LENGTH) = .{},
 };
 
 pub fn listRepos(repos: *std.ArrayList(Repo)) !void {
@@ -120,18 +120,13 @@ pub fn listRepos(repos: *std.ArrayList(Repo)) !void {
     var rows = try conn.rows("select name, description from repo order by name;", .{});
     defer rows.deinit();
     while (rows.next()) |row| {
-        var repo: Repo = .{
-            .name = .{},
-            .description = .{},
-            .owner = .{},
-        };
+        var repo = Repo{};
         try repo.name.appendSlice(row.text(0));
         try repo.description.appendSlice(row.text(1));
         try repos.append(repo);
     }
 
     if (rows.err) |err| {
-        std.debug.print(">>>>> error here\n", .{});
         return err;
     }
 }

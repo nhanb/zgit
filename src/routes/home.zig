@@ -7,10 +7,7 @@ const std = @import("std");
 pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     res.status = 200;
 
-    var config = db.Config{
-        .site_name = .{},
-        .tagline = .{},
-    };
+    var config = db.Config{};
     try db.readConfig(&config);
 
     const h = html.Builder{ .allocator = res.arena };
