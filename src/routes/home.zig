@@ -3,6 +3,7 @@ const html = @import("../html.zig");
 const templates = @import("../templates.zig");
 const db = @import("../db.zig");
 const std = @import("std");
+const time = @import("../time.zig");
 
 pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     res.status = 200;
@@ -14,7 +15,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
 
     // read repos from db then construct html table rows
     var repos = std.ArrayList(db.Repo).init(res.arena);
-    try db.listRepos(&repos);
+    try db.listRepos(res.arena, &repos);
     var repo_trs = std.ArrayList(html.Element).init(res.arena);
     for (0..repos.items.len) |i| {
         const name = repos.items[i].name.slice();
@@ -22,13 +23,16 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
         if (desc.len == 0) {
             desc = "-";
         }
+
+        const last_commit_time = time.DateTime.initUnix(repos.items[i].last_commit_ts);
+
         try repo_trs.append(h.tr(null, .{
             h.td(null, .{
                 h.a(.{ .href = name }, .{name}),
             }),
             h.td(null, .{desc}),
             h.td(null, .{"TODO"}),
-            h.td(null, .{"TODO"}),
+            h.td(null, .{try last_commit_time.formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss z")}),
         }));
     }
 
@@ -44,7 +48,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
                         h.th(null, .{"Name"}),
                         h.th(null, .{"Description"}),
                         h.th(null, .{"Owner"}),
-                        h.th(null, .{"Idle"}),
+                        h.th(null, .{"Last committed"}),
                     }),
                 }),
                 h.tbody(null, .{

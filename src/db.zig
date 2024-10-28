@@ -111,9 +111,10 @@ pub const Repo = struct {
     name: std.BoundedArray(u8, REPO_NAME_MAX_LENGTH) = .{},
     description: std.BoundedArray(u8, REPO_DESC_MAX_LENGTH) = .{},
     owner: std.BoundedArray(u8, EMAIL_MAX_LENGTH) = .{},
+    last_commit_ts: u64 = 0,
 };
 
-pub fn listRepos(repos: *std.ArrayList(Repo)) !void {
+pub fn listRepos(arena: std.mem.Allocator, repos: *std.ArrayList(Repo)) !void {
     var conn = try zqlite.open(DB_PATH, zqlite.OpenFlags.ReadOnly | zqlite.OpenFlags.EXResCode);
     defer conn.close();
 
@@ -123,6 +124,23 @@ pub fn listRepos(repos: *std.ArrayList(Repo)) !void {
         var repo = Repo{};
         try repo.name.appendSlice(row.text(0));
         try repo.description.appendSlice(row.text(1));
+
+        const result = try std.process.Child.run(.{
+            .allocator = arena,
+            .cwd = repo.name.slice(),
+            .argv = &.{
+                "git",
+                "--no-pager",
+                "log",
+                "-1",
+                "--format=%at",
+            },
+        });
+        const ts = result.stdout;
+        if (ts.len > 0) {
+            repo.last_commit_ts = try std.fmt.parseUnsigned(u64, ts[0 .. ts.len - 1], 10);
+        }
+
         try repos.append(repo);
     }
 
