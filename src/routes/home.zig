@@ -1,8 +1,8 @@
+const std = @import("std");
 const httpz = @import("httpz");
 const html = @import("../html.zig");
 const templates = @import("../templates.zig");
 const db = @import("../db.zig");
-const std = @import("std");
 const time = @import("../time.zig");
 
 pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
@@ -16,15 +16,24 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     // read repos from db then construct html table rows
     var repos = std.ArrayList(db.Repo).init(res.arena);
     try db.listRepos(res.arena, &repos);
+    std.mem.sort(db.Repo, repos.items, {}, db.Repo.latestFirst);
     var repo_trs = std.ArrayList(html.Element).init(res.arena);
     for (0..repos.items.len) |i| {
         const name = repos.items[i].name.slice();
+
         var desc: []const u8 = repos.items[i].description.slice();
         if (desc.len == 0) {
             desc = "-";
         }
 
-        const last_commit_time = time.DateTime.initUnix(repos.items[i].last_commit_ts);
+        const last_commit_ts = repos.items[i].last_commit_ts;
+        const last_committed = switch (last_commit_ts) {
+            0 => "-",
+            else => try time.DateTime.initUnix(last_commit_ts).formatAlloc(
+                res.arena,
+                "YYYY-MM-DD HH:mm:ss z",
+            ),
+        };
 
         try repo_trs.append(h.tr(null, .{
             h.td(null, .{
@@ -32,7 +41,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
             }),
             h.td(null, .{desc}),
             h.td(null, .{"TODO"}),
-            h.td(null, .{try last_commit_time.formatAlloc(res.arena, "YYYY-MM-DD HH:mm:ss z")}),
+            h.td(null, .{last_committed}),
         }));
     }
 

@@ -50,7 +50,7 @@ pub fn init() !bool {
     // insert default config:
     try conn.execNoArgs("insert into config(id) values(0) on conflict do nothing;");
 
-    // TODO: read current dir, insert repo records into db
+    // read current dir, insert repo records into db
     const dir = try cwd.openDir(".", .{
         .access_sub_paths = false,
         .iterate = true,
@@ -112,6 +112,10 @@ pub const Repo = struct {
     description: std.BoundedArray(u8, REPO_DESC_MAX_LENGTH) = .{},
     owner: std.BoundedArray(u8, EMAIL_MAX_LENGTH) = .{},
     last_commit_ts: u64 = 0,
+
+    pub fn latestFirst(_: void, lhs: Repo, rhs: Repo) bool {
+        return lhs.last_commit_ts > rhs.last_commit_ts;
+    }
 };
 
 pub fn listRepos(arena: std.mem.Allocator, repos: *std.ArrayList(Repo)) !void {
