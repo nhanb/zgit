@@ -31,6 +31,11 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
             last_committed = "-";
         }
 
+        var num_commits = repos.items[i].num_commits;
+        if (num_commits.len == 0) {
+            num_commits = "-";
+        }
+
         try repo_trs.append(h.tr(null, .{
             h.td(null, .{
                 h.a(.{ .href = try std.fmt.allocPrint(res.arena, "{s}/", .{name}) }, .{
@@ -39,6 +44,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
             }),
             h.td(null, .{desc}),
             h.td(null, .{"TODO"}),
+            h.td(null, .{num_commits}),
             h.td(.{ .class = "monospace" }, .{last_committed}),
         }));
     }
@@ -55,6 +61,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
                         h.th(null, .{"Name"}),
                         h.th(null, .{"Description"}),
                         h.th(null, .{"Owner"}),
+                        h.th(null, .{"Commits"}),
                         h.th(null, .{"Last committed"}),
                     }),
                 }),

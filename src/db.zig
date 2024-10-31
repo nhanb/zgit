@@ -112,6 +112,7 @@ pub const Repo = struct {
     description: std.BoundedArray(u8, REPO_DESC_MAX_LENGTH) = .{},
     owner: std.BoundedArray(u8, EMAIL_MAX_LENGTH) = .{},
     last_committed: []const u8 = "",
+    num_commits: []const u8 = "",
 
     pub fn latestFirst(_: void, lhs: Repo, rhs: Repo) bool {
         return std.mem.order(
@@ -146,6 +147,16 @@ pub fn listRepos(arena: std.mem.Allocator) !std.ArrayList(Repo) {
         });
         if (result.stdout.len > 0) {
             repo.last_committed = result.stdout;
+        }
+
+        const optional_num_commits_result = std.process.Child.run(.{
+            .allocator = arena,
+            .cwd = repo.name.slice(),
+            .argv = &.{ "git", "rev-list", "--count", "HEAD" },
+        }) catch null;
+
+        if (optional_num_commits_result) |n_result| {
+            repo.num_commits = n_result.stdout;
         }
 
         try repos.append(repo);
