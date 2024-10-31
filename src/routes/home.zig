@@ -15,8 +15,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     const h = html.Builder{ .allocator = res.arena };
 
     // read repos from db then construct html table rows
-    var repos = std.ArrayList(db.Repo).init(res.arena);
-    try db.listRepos(res.arena, &repos);
+    var repos = try db.listRepos(res.arena);
     std.mem.sort(db.Repo, repos.items, {}, db.Repo.latestFirst);
     var repo_trs = std.ArrayList(html.Element).init(res.arena);
     for (0..repos.items.len) |i| {
@@ -27,22 +26,20 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
             desc = "-";
         }
 
-        const last_commit_ts = repos.items[i].last_commit_ts;
-        const last_committed = switch (last_commit_ts) {
-            0 => "-",
-            else => try time.DateTime.initUnix(last_commit_ts).formatAlloc(
-                res.arena,
-                "YYYY-MM-DD HH:mm:ss z",
-            ),
-        };
+        var last_committed = repos.items[i].last_committed;
+        if (last_committed.len == 0) {
+            last_committed = "-";
+        }
 
         try repo_trs.append(h.tr(null, .{
             h.td(null, .{
-                h.a(.{ .href = name }, .{name}),
+                h.a(.{ .href = try std.fmt.allocPrint(res.arena, "{s}/", .{name}) }, .{
+                    name,
+                }),
             }),
             h.td(null, .{desc}),
             h.td(null, .{"TODO"}),
-            h.td(null, .{last_committed}),
+            h.td(.{ .class = "monospace" }, .{last_committed}),
         }));
     }
 

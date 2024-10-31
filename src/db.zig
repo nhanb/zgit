@@ -111,14 +111,19 @@ pub const Repo = struct {
     name: std.BoundedArray(u8, REPO_NAME_MAX_LENGTH) = .{},
     description: std.BoundedArray(u8, REPO_DESC_MAX_LENGTH) = .{},
     owner: std.BoundedArray(u8, EMAIL_MAX_LENGTH) = .{},
-    last_commit_ts: u64 = 0,
+    last_committed: []const u8 = "",
 
     pub fn latestFirst(_: void, lhs: Repo, rhs: Repo) bool {
-        return lhs.last_commit_ts > rhs.last_commit_ts;
+        return std.mem.order(
+            u8,
+            lhs.last_committed,
+            rhs.last_committed,
+        ).compare(std.math.CompareOperator.gt);
     }
 };
 
-pub fn listRepos(arena: std.mem.Allocator, repos: *std.ArrayList(Repo)) !void {
+pub fn listRepos(arena: std.mem.Allocator) !std.ArrayList(Repo) {
+    var repos = std.ArrayList(Repo).init(arena);
     var conn = try zqlite.open(DB_PATH, zqlite.OpenFlags.ReadOnly | zqlite.OpenFlags.EXResCode);
     defer conn.close();
 
@@ -134,15 +139,13 @@ pub fn listRepos(arena: std.mem.Allocator, repos: *std.ArrayList(Repo)) !void {
             .cwd = repo.name.slice(),
             .argv = &.{
                 "git",
-                "--no-pager",
                 "log",
                 "-1",
-                "--format=%at",
+                "--format=%ai",
             },
         });
-        const ts = result.stdout;
-        if (ts.len > 0) {
-            repo.last_commit_ts = try std.fmt.parseUnsigned(u64, ts[0 .. ts.len - 1], 10);
+        if (result.stdout.len > 0) {
+            repo.last_committed = result.stdout;
         }
 
         try repos.append(repo);
@@ -151,4 +154,73 @@ pub fn listRepos(arena: std.mem.Allocator, repos: *std.ArrayList(Repo)) !void {
     if (rows.err) |err| {
         return err;
     }
+    return repos;
+}
+
+const Commit = struct {
+    title: []const u8,
+    hash_long: []const u8,
+    hash_short: []const u8,
+    author_name: []const u8,
+    author_email: []const u8,
+    datetime: []const u8,
+};
+
+const RepoDetail = struct {
+    name: []const u8,
+    description: []const u8,
+    commits: []Commit,
+};
+
+pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
+    var conn = try zqlite.open(DB_PATH, zqlite.OpenFlags.ReadOnly | zqlite.OpenFlags.EXResCode);
+    defer conn.close();
+
+    const maybeRow = try conn.row("select description from repo where name=?;", .{name});
+    if (maybeRow == null) {
+        return error.RepoNotFound;
+    }
+
+    const row = maybeRow.?;
+    defer row.deinit();
+
+    const description = try arena.dupe(u8, row.text(0));
+
+    const result = try std.process.Child.run(.{
+        .allocator = arena,
+        .cwd = name,
+        .argv = &.{
+            "git",
+            "log",
+            "--pretty=%H»¦«%h»¦«%s»¦«%aN»¦«%aE»¦«%ai",
+        },
+        .max_output_bytes = 1024 * 1024 * 100,
+    });
+    const git_log = result.stdout;
+
+    var commits = std.ArrayList(Commit).init(arena);
+
+    if (git_log.len > 0) {
+        var line_iter = std.mem.splitSequence(u8, git_log, "\n");
+        while (line_iter.next()) |line| {
+            if (line.len == 0) {
+                continue;
+            }
+            var iter = std.mem.splitSequence(u8, line, "»¦«");
+            const commit = Commit{
+                .hash_long = iter.next().?,
+                .hash_short = iter.next().?,
+                .title = iter.next().?,
+                .author_name = iter.next().?,
+                .author_email = iter.next().?,
+                .datetime = iter.next().?,
+            };
+            try commits.append(commit);
+        }
+    }
+    return .{
+        .name = name,
+        .description = description,
+        .commits = commits.items,
+    };
 }

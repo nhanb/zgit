@@ -35,6 +35,11 @@ a:hover {
   text-decoration: none;
 }
 
+.monospace {
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
 label {
   line-height: 1.5em;
 }
@@ -52,9 +57,20 @@ button {
 
 table {
   border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+}
+thead {
+  font-weight: bold;
 }
 tbody tr:nth-child(odd) {
   background-color: #eee;
+}
+tbody tr:hover {
+  background-color: lightgrey;
+}
+tr {
+  line-height: 1.7rem;
 }
 
 /*

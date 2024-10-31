@@ -5,6 +5,7 @@ const db = @import("./db.zig");
 const home = @import("./routes/home.zig");
 const register = @import("./routes/register.zig");
 const static = @import("./routes/static.zig");
+const repo = @import("./routes/repo.zig");
 
 const PORT = 8000;
 
@@ -22,7 +23,10 @@ pub fn main() !void {
     // More advanced cases will use a custom "Handler" instead of "void".
     // The last parameter is our handler instance, since we have a "void"
     // handler, we passed a void ({}) value.
-    var server = try httpz.Server(void).init(allocator, .{ .port = PORT }, {});
+    var server = try httpz.Server(void).init(allocator, .{
+        .port = PORT,
+        // lots of other settings here - see httpz's README
+    }, {});
     defer {
         // clean shutdown, finishes serving any live request
         server.stop();
@@ -31,8 +35,9 @@ pub fn main() !void {
 
     var router = server.router(.{});
     router.get("/", home.serve, .{});
-    router.get("/register", register.serve, .{});
+    router.get("/register/", register.serve, .{});
     router.get(static.URL_PATH ++ "/:filename", static.serve, .{});
+    router.get("/:repo_name/", repo.serve, .{});
     std.debug.print("Started server at port {d}\n", .{PORT});
 
     // blocks
