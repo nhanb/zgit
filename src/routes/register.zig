@@ -1,6 +1,7 @@
 const httpz = @import("httpz");
 const html = @import("../html.zig");
 const templates = @import("../templates.zig");
+const static = @import("./static.zig");
 
 pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     res.status = 200;
@@ -11,6 +12,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
         .title = "Register",
         .subtitle = "Register your account here",
         .main = h.div(null, .{
+            h.link(.{ .rel = "stylesheet", .href = static.register_css.url_path }),
             h.form(
                 .{ .style = "max-width: 30rem" },
                 .{

@@ -19,16 +19,16 @@ pub fn base(args: TemplateArgs) html.Element {
                 h.meta(.{ .charset = "utf-8" }),
                 h.meta(.{ .name = "viewport", .content = "width=device-width, initial-scale=1.0" }),
                 h.title(null, .{ args.title, " | zgit" }),
-                h.link(.{ .rel = "stylesheet", .href = "/static/style.css" }),
+                h.link(.{ .rel = "stylesheet", .href = static.style_css.url_path }),
             }),
             h.body(null, .{
                 h.header(null, .{
                     h.a(.{ .id = "home-link", .href = "/", .title = "Go to homepage" }, .{
                         h.img(.{
                             .id = "mascot",
-                            .src = "/static/mascot.png",
-                            .width = static.mascot_png.width,
-                            .height = static.mascot_png.height,
+                            .src = static.mascot_png.url_path,
+                            .width = static.mascot_png.kind.img.width,
+                            .height = static.mascot_png.kind.img.height,
                         }),
                     }),
                     h.div(.{ .id = "title-container" }, .{

@@ -2,8 +2,8 @@ const std = @import("std");
 const httpz = @import("httpz");
 const html = @import("./html.zig");
 const db = @import("./db.zig");
-const serveHome = @import("./routes/home.zig").serve;
-const serveRegister = @import("./routes/register.zig").serve;
+const home = @import("./routes/home.zig");
+const register = @import("./routes/register.zig");
 const static = @import("./routes/static.zig");
 
 const PORT = 8000;
@@ -30,12 +30,9 @@ pub fn main() !void {
     }
 
     var router = server.router(.{});
-    router.get("/", serveHome, .{});
-    router.get("/register", serveRegister, .{});
-    router.get("/static/mascot.png", static.serveMascotPng, .{});
-    router.get("/static/home.css", static.serveHomeCss, .{});
-    router.get("/static/register.css", static.serveRegisterCss, .{});
-    router.get("/static/style.css", static.serveStyleCss, .{});
+    router.get("/", home.serve, .{});
+    router.get("/register", register.serve, .{});
+    router.get(static.URL_PATH ++ "/:filename", static.serve, .{});
     std.debug.print("Started server at port {d}\n", .{PORT});
 
     // blocks

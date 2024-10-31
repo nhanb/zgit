@@ -4,6 +4,7 @@ const html = @import("../html.zig");
 const templates = @import("../templates.zig");
 const db = @import("../db.zig");
 const time = @import("../time.zig");
+const static = @import("./static.zig");
 
 pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     res.status = 200;
@@ -50,7 +51,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
         .title = config.site_name.slice(),
         .subtitle = config.tagline.slice(),
         .main = h.main(null, .{
-            h.link(.{ .rel = "stylesheet", .href = "/static/home.css" }),
+            h.link(.{ .rel = "stylesheet", .href = static.home_css.url_path }),
             h.table(.{ .id = "repos-table" }, .{
                 h.thead(null, .{
                     h.tr(null, .{
