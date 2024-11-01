@@ -49,9 +49,11 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
         }));
     }
 
+    const title = config.site_name.slice();
     const body = templates.base(.{
         .builder = h,
-        .title = config.site_name.slice(),
+        .title_tag_text = title,
+        .title = .{ .text = title },
         .subtitle = config.tagline.slice(),
         .main = h.main(null, .{
             h.link(.{ .rel = "stylesheet", .href = static.home_css.url_path }),

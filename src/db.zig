@@ -239,3 +239,25 @@ pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
         .commits = commits.items,
     };
 }
+
+pub fn getCommit(arena: std.mem.Allocator, repo_name: []const u8, hash: []const u8) ![]const u8 {
+    var conn = try zqlite.open(DB_PATH, zqlite.OpenFlags.ReadOnly | zqlite.OpenFlags.EXResCode);
+    defer conn.close();
+
+    const maybeRow = try conn.row("select 1 from repo where name=?;", .{repo_name});
+    if (maybeRow == null) {
+        return error.RepoNotFound;
+    }
+
+    const result = try std.process.Child.run(.{
+        .allocator = arena,
+        .cwd = repo_name,
+        .argv = &.{ "git", "show", hash },
+        .max_output_bytes = 1024 * 1024 * 10,
+    });
+    if (result.stderr.len > 0) {
+        std.debug.print("`git show {s}` failed: {s}", .{ hash, result.stderr });
+        return error.CommitHashNotFound;
+    }
+    return result.stdout;
+}

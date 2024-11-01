@@ -157,6 +157,9 @@ pub const Builder = struct {
                     children_list.append(.{ .elem = c }) catch unreachable;
                 }
             },
+            Child => {
+                children_list.append(child) catch unreachable;
+            },
             []Child => {
                 for (child) |c| {
                     children_list.append(c) catch unreachable;

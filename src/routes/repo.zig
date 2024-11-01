@@ -39,7 +39,8 @@ pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
 
     const body = templates.base(.{
         .builder = h,
-        .title = repo.name,
+        .title_tag_text = repo.name,
+        .title = .{ .text = repo.name },
         .subtitle = repo.description,
         .main = h.main(null, .{
             h.table(null, .{

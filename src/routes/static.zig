@@ -15,18 +15,16 @@ const FS_PATH = "./static";
 // (1)
 const raw_assets = .{
     .{ "mascot.png", .{ .img = .{ .width = "90", .height = "120" } } },
+    .{ "developers.png", .{ .img = .{ .width = "100", .height = "100" } } },
     .{ "style.css", .css },
     .{ "home.css", .css },
-    .{ "register.css", .css },
-    .{ "developers.png", .{ .img = .{ .width = "100", .height = "100" } } },
 };
 
 // (2)
 pub const mascot_png = assets[0];
-pub const style_css = assets[1];
-pub const home_css = assets[2];
-pub const register_css = assets[3];
-pub const developers_png = assets[4];
+pub const developers_png = assets[1];
+pub const style_css = assets[2];
+pub const home_css = assets[3];
 
 pub const Asset = struct {
     name: []const u8,
