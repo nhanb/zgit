@@ -18,6 +18,7 @@ const raw_assets = .{
     .{ "style.css", .css },
     .{ "home.css", .css },
     .{ "register.css", .css },
+    .{ "developers.png", .{ .img = .{ .width = "100", .height = "100" } } },
 };
 
 // (2)
@@ -25,6 +26,7 @@ pub const mascot_png = assets[0];
 pub const style_css = assets[1];
 pub const home_css = assets[2];
 pub const register_css = assets[3];
+pub const developers_png = assets[4];
 
 pub const Asset = struct {
     name: []const u8,
