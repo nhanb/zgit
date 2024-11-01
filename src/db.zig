@@ -183,6 +183,10 @@ const RepoDetail = struct {
     commits: []Commit,
 };
 
+// Separator sequence used in git log output format. I'm using ASCII control code 31 which is
+// the "unit separator", which hopefully isn't used in commit titles (at least not on purpose).
+pub const SEP = "\x1f";
+
 pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
     var conn = try zqlite.open(DB_PATH, zqlite.OpenFlags.ReadOnly | zqlite.OpenFlags.EXResCode);
     defer conn.close();
@@ -203,7 +207,7 @@ pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
         .argv = &.{
             "git",
             "log",
-            "--pretty=%H»¦«%h»¦«%s»¦«%aN»¦«%aE»¦«%ai",
+            "--pretty=%H" ++ SEP ++ "%h" ++ SEP ++ "%s" ++ SEP ++ "%aN" ++ SEP ++ "%aE" ++ SEP ++ "%ai",
         },
         .max_output_bytes = 1024 * 1024 * 100,
     });
@@ -217,7 +221,7 @@ pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
             if (line.len == 0) {
                 continue;
             }
-            var iter = std.mem.splitSequence(u8, line, "»¦«");
+            var iter = std.mem.splitSequence(u8, line, SEP);
             const commit = Commit{
                 .hash_long = iter.next().?,
                 .hash_short = iter.next().?,
