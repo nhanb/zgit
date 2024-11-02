@@ -183,9 +183,11 @@ const RepoDetail = struct {
     commits: []Commit,
 };
 
-// Separator sequence used in git log output format. I'm using ASCII control code 31 which is
-// the "unit separator", which hopefully isn't used in commit titles (at least not on purpose).
-pub const SEP = "\x1f";
+// Using the null byte as field separator for `git log` output format.
+// Since NUL is not allowed in commit message, we're probably safe:
+// https://github.com/git/git/blob/8f8d6eee531b3fa1a8ef14f169b0cb5035f7a772/commit.c#L1713
+const NUL = "%x00";
+const NULL_BYTE = '\x00';
 
 pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
     var conn = try zqlite.open(DB_PATH, zqlite.OpenFlags.ReadOnly | zqlite.OpenFlags.EXResCode);
@@ -207,7 +209,7 @@ pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
         .argv = &.{
             "git",
             "log",
-            "--pretty=%H" ++ SEP ++ "%h" ++ SEP ++ "%s" ++ SEP ++ "%aN" ++ SEP ++ "%aE" ++ SEP ++ "%ai",
+            "--pretty=%H" ++ NUL ++ "%h" ++ NUL ++ "%s" ++ NUL ++ "%aN" ++ NUL ++ "%aE" ++ NUL ++ "%ai",
         },
         .max_output_bytes = 1024 * 1024 * 100,
     });
@@ -216,12 +218,14 @@ pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
     var commits = std.ArrayList(Commit).init(arena);
 
     if (git_log.len > 0) {
-        var line_iter = std.mem.splitSequence(u8, git_log, "\n");
+        var line_iter = std.mem.splitScalar(u8, git_log, '\n');
         while (line_iter.next()) |line| {
             if (line.len == 0) {
                 continue;
             }
-            var iter = std.mem.splitSequence(u8, line, SEP);
+            //std.debug.print(">> line: {s}\n", .{line});
+            var iter = std.mem.splitScalar(u8, line, NULL_BYTE);
+            //std.debug.print(">> iter.rest(): {s}\n", .{iter.rest()});
             const commit = Commit{
                 .hash_long = iter.next().?,
                 .hash_short = iter.next().?,
