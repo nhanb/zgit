@@ -45,7 +45,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
             h.td(null, .{desc}),
             h.td(null, .{"TODO"}),
             h.td(null, .{num_commits}),
-            h.td(.{ .class = "monospace" }, .{last_committed}),
+            h.td(null, .{last_committed}),
         }));
     }
 

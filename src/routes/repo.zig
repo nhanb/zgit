@@ -20,7 +20,7 @@ pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
     var commit_rows = std.ArrayList(html.Element).init(res.arena);
     for (repo.commits) |commit| {
         try commit_rows.append(h.tr(null, .{
-            h.td(.{ .class = "monospace" }, .{
+            h.td(null, .{
                 h.a(.{
                     .href = try std.fmt.allocPrint(
                         res.arena,
@@ -33,7 +33,7 @@ pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
             }),
             h.td(null, .{commit.title}),
             h.td(null, .{ commit.author_name, " <", commit.author_email, ">" }),
-            h.td(.{ .class = "monospace" }, .{commit.datetime}),
+            h.td(null, .{commit.datetime}),
         }));
     }
 
