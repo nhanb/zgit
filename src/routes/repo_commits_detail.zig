@@ -49,4 +49,5 @@ pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
     try h.writeDoctype(writer);
     try body.writeTo(writer);
     res.status = 200;
+    res.content_type = .HTML;
 }

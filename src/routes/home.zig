@@ -8,6 +8,7 @@ const static = @import("./static.zig");
 
 pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
     res.status = 200;
+    res.content_type = .HTML;
 
     var config = db.Config{};
     try db.readConfig(&config);

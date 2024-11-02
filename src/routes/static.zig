@@ -36,6 +36,7 @@ pub const Asset = struct {
         },
         css: void,
     },
+    content_type: httpz.ContentType,
     data: []const u8,
     url_path: []const u8,
 };
@@ -43,11 +44,13 @@ pub const Asset = struct {
 const assets: []const Asset = assets_block: {
     var result: [raw_assets.len]Asset = undefined;
     for (raw_assets, 0..) |raw, i| {
+        const filename = raw[0];
         result[i] = .{
-            .name = raw[0],
+            .name = filename,
             .kind = raw[1],
             .data = @embedFile(FS_PATH ++ "/" ++ raw[0]),
             .url_path = URL_PATH ++ "/" ++ raw[0],
+            .content_type = httpz.ContentType.forFile(filename),
         };
     }
     // Copy to a const because result is a comptime var which is not allowed to "leak":
@@ -63,6 +66,7 @@ pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
         if (std.mem.eql(u8, filename, asset.name)) {
             res.status = 200;
             res.body = asset.data;
+            res.content_type = asset.content_type;
             return;
         }
     }
