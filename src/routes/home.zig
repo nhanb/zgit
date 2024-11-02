@@ -38,7 +38,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
 
         try repo_trs.append(h.tr(null, .{
             h.td(null, .{
-                h.a(.{ .href = try std.fmt.allocPrint(res.arena, "{s}/", .{name}) }, .{
+                h.a(.{ .href = try std.fmt.allocPrint(res.arena, "{s}/commits/", .{name}) }, .{
                     name,
                 }),
             }),
@@ -60,7 +60,7 @@ pub fn serve(_: *httpz.Request, res: *httpz.Response) !void {
             h.table(.{ .id = "repos-table" }, .{
                 h.thead(null, .{
                     h.tr(null, .{
-                        h.th(null, .{"Name"}),
+                        h.th(null, .{"Repo"}),
                         h.th(null, .{"Description"}),
                         h.th(null, .{"Owner"}),
                         h.th(null, .{"Commits"}),

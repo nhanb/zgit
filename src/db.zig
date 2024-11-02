@@ -240,7 +240,12 @@ pub fn getRepo(arena: std.mem.Allocator, name: []const u8) !RepoDetail {
     };
 }
 
-pub fn getCommit(arena: std.mem.Allocator, repo_name: []const u8, hash: []const u8) ![]const u8 {
+const CommitDetail = struct {
+    content: []const u8,
+    shortstat: []const u8,
+};
+
+pub fn getCommit(arena: std.mem.Allocator, repo_name: []const u8, hash: []const u8) !CommitDetail {
     var conn = try zqlite.open(DB_PATH, zqlite.OpenFlags.ReadOnly | zqlite.OpenFlags.EXResCode);
     defer conn.close();
 
@@ -249,15 +254,29 @@ pub fn getCommit(arena: std.mem.Allocator, repo_name: []const u8, hash: []const 
         return error.RepoNotFound;
     }
 
-    const result = try std.process.Child.run(.{
+    const git_show = try std.process.Child.run(.{
         .allocator = arena,
         .cwd = repo_name,
         .argv = &.{ "git", "show", hash },
         .max_output_bytes = 1024 * 1024 * 10,
     });
-    if (result.stderr.len > 0) {
-        std.debug.print("`git show {s}` failed: {s}", .{ hash, result.stderr });
+    if (git_show.stderr.len > 0) {
+        std.debug.print("`git show {s}` failed: {s}", .{ hash, git_show.stderr });
         return error.CommitHashNotFound;
     }
-    return result.stdout;
+
+    const git_show_shortstat = try std.process.Child.run(.{
+        .allocator = arena,
+        .cwd = repo_name,
+        .argv = &.{ "git", "show", hash, "--shortstat", "--format=" },
+        .max_output_bytes = 1024 * 1024 * 10,
+    });
+    if (git_show_shortstat.stderr.len > 0) {
+        std.debug.print("`git show --shortstat {s}` failed: {s}", .{ hash, git_show_shortstat.stderr });
+        return error.CommitHashNotFound;
+    }
+    return .{
+        .content = git_show.stdout,
+        .shortstat = git_show_shortstat.stdout,
+    };
 }

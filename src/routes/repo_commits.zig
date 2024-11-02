@@ -3,6 +3,7 @@ const httpz = @import("httpz");
 const html = @import("../html.zig");
 const templates = @import("../templates.zig");
 const db = @import("../db.zig");
+const aprint = std.fmt.allocPrint;
 
 pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
     const repo_name = req.param("repo_name").?;
@@ -21,13 +22,7 @@ pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
     for (repo.commits) |commit| {
         try commit_rows.append(h.tr(null, .{
             h.td(null, .{
-                h.a(.{
-                    .href = try std.fmt.allocPrint(
-                        res.arena,
-                        "commit/{s}/",
-                        .{commit.hash_long},
-                    ),
-                }, .{
+                h.a(.{ .href = try aprint(res.arena, "{s}/", .{commit.hash_long}) }, .{
                     commit.hash_short,
                 }),
             }),
@@ -40,8 +35,16 @@ pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
     const body = templates.base(.{
         .builder = h,
         .title_tag_text = repo.name,
-        .title = .{ .text = repo.name },
-        .subtitle = repo.description,
+        .title = .{
+            .elem = h.span(null, .{
+                h.a(
+                    .{ .href = "../" },
+                    .{repo_name},
+                ),
+                " » commits",
+            }),
+        },
+        .subtitle = try aprint(res.arena, "{d} commits so far", .{repo.commits.len}),
         .main = h.main(null, .{
             h.table(null, .{
                 h.thead(null, .{

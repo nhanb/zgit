@@ -25,17 +25,22 @@ pub fn serve(req: *httpz.Request, res: *httpz.Response) !void {
         .title = .{
             .elem = h.span(null, .{
                 h.a(
-                    .{ .href = try aprint(res.arena, "/{s}/", .{repo_name}) },
+                    .{ .href = "../../" },
                     .{repo_name},
+                ),
+                " » ",
+                h.a(
+                    .{ .href = "../" },
+                    .{"commits"},
                 ),
                 " » ",
                 hash,
             }),
         },
-        .subtitle = "commit content",
+        .subtitle = commit.shortstat,
         .main = h.main(null, .{
             h.pre(null, .{
-                commit,
+                commit.content,
             }),
         }),
     });

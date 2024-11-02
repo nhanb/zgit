@@ -4,8 +4,8 @@ const html = @import("./html.zig");
 const db = @import("./db.zig");
 const home = @import("./routes/home.zig");
 const static = @import("./routes/static.zig");
-const repo = @import("./routes/repo.zig");
-const commit = @import("./routes/commit.zig");
+const repo_commits = @import("./routes/repo_commits.zig");
+const repo_commits_detail = @import("./routes/repo_commits_detail.zig");
 
 const PORT = 8000;
 
@@ -36,8 +36,8 @@ pub fn main() !void {
     var router = server.router(.{});
     router.get("/", home.serve, .{});
     router.get(static.URL_PATH ++ "/:filename", static.serve, .{});
-    router.get("/:repo_name/", repo.serve, .{});
-    router.get("/:repo_name/commit/:hash", commit.serve, .{});
+    router.get("/:repo_name/commits/", repo_commits.serve, .{});
+    router.get("/:repo_name/commits/:hash/", repo_commits_detail.serve, .{});
     std.debug.print("Started server at port {d}\n", .{PORT});
 
     // blocks
